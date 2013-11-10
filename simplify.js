@@ -85,7 +85,7 @@ function _simplifyDouglasPeucker(points, sqTolerance) {
     return newPoints;
 }
 
-function simplify(points, tolerance, highestQuality) {
+function simplify(points, tolerance) {
 
     var sqTolerance = tolerance !== undefined ? tolerance * tolerance : 1;
     points = _simplifyDouglasPeucker(points, sqTolerance);
