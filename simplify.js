@@ -6,20 +6,11 @@
 
 (function () { "use strict";
 
-// Expects points to be in format [x, y] to suit your point format, run 
+// Expects points to be in format [x, y]. To suit your point format, run 
 // search/replace for '[0]' and '[1]'
 
-// Square distance between 2 points
-function getSqDist(p1, p2) {
-
-    var dx = p1[0] - p2[0],
-        dy = p1[1] - p2[1];
-
-    return dx * dx + dy * dy;
-}
-
 // Square distance from a point to a segment
-function getSqSegDist(p, p1, p2) {
+function _getSqSegDist(p, p1, p2) {
 
     var x = p1[0],
         y = p1[1],
@@ -46,33 +37,8 @@ function getSqSegDist(p, p1, p2) {
     return dx * dx + dy * dy;
 }
 
-// Rest of the code doesn't care about point format
-
-// Basic distance-based simplification
-function simplifyRadialDist(points, sqTolerance) {
-
-    var prevPoint = points[0],
-        newPoints = [prevPoint],
-        point;
-
-    for (var i = 1, len = points.length; i < len; i++) {
-        point = points[i];
-
-        if (getSqDist(point, prevPoint) > sqTolerance) {
-            newPoints.push(point);
-            prevPoint = point;
-        }
-    }
-
-    if (prevPoint !== point) {
-        newPoints.push(point);
-    }
-
-    return newPoints;
-}
-
 // Simplification using optimized Douglas-Peucker algorithm with recursion elimination
-function simplifyDouglasPeucker(points, sqTolerance) {
+function _simplifyDouglasPeucker(points, sqTolerance) {
 
     var len = points.length,
         MarkerArray = typeof Uint8Array !== 'undefined' ? Uint8Array : Array,
@@ -90,7 +56,7 @@ function simplifyDouglasPeucker(points, sqTolerance) {
         maxSqDist = 0;
 
         for (i = first + 1; i < last; i++) {
-            sqDist = getSqSegDist(points[i], points[first], points[last]);
+            sqDist = _getSqSegDist(points[i], points[first], points[last]);
 
             if (sqDist > maxSqDist) {
                 index = i;
@@ -111,18 +77,18 @@ function simplifyDouglasPeucker(points, sqTolerance) {
         if (markers[i]) {
             newPoints.push(points[i]);
         }
+        else if (isNaN(points[i][1])) {
+            newPoints.push(points[i]);
+        }
     }
 
     return newPoints;
 }
 
-// Both algorithms combined for awesome performance
 function simplify(points, tolerance, highestQuality) {
 
     var sqTolerance = tolerance !== undefined ? tolerance * tolerance : 1;
-
-    points = highestQuality ? points : simplifyRadialDist(points, sqTolerance);
-    points = simplifyDouglasPeucker(points, sqTolerance);
+    points = _simplifyDouglasPeucker(points, sqTolerance);
 
     return points;
 }
